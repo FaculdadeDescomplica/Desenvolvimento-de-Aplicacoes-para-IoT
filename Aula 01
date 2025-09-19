@@ -1,0 +1,85 @@
+// Definición de pines
+#define POT A0
+#define SENSOR_TEMP A1
+#define LED1 2
+#define RELE_1 3
+#define RELE_2 4
+#define SWITCH 5
+
+// Variables
+float temperatura;
+float setPoint;
+bool switchStatus;
+
+// Prototipos de funciones
+void controlTemperatura();
+
+void setup() {
+  pinMode(LED1, OUTPUT);
+  pinMode(RELE_1, OUTPUT);
+  pinMode(RELE_2, OUTPUT);
+  pinMode(SWITCH, INPUT_PULLUP);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // Leer estado del SWITCH
+  switchStatus = digitalRead(SWITCH);
+  
+  // Leer valor del potenciómetro y calcular el setPoint
+  int potValue = analogRead(POT);
+  setPoint = map(potValue, 0, 1023, 20, 60);
+  
+  // Leer temperatura del sensor
+  temperatura = leerTemperatura();
+
+  // Imprimir valores en el monitor serie
+  Serial.print("SetPoint: ");
+  Serial.print(setPoint);
+  Serial.print(" - Temperatura: ");
+  Serial.println(temperatura);
+
+  // Comportamiento del LED y RELEs según el estado del SWITCH
+  if (switchStatus == HIGH) {
+    // Parpadeo del LED cuando el SWITCH está en OFF
+    digitalWrite(LED1, HIGH);
+    delay(200);
+    digitalWrite(LED1, LOW);
+    delay(200);
+    
+    // Apagar RELEs en secuencia cuando el SWITCH está en OFF
+    digitalWrite(RELE_2, LOW); // Apagar RELE_2
+    delay(500); // Esperar 500 milisegundos
+    digitalWrite(RELE_1, LOW); // Apagar RELE_1
+
+  } else {
+    // Encender LED fijo cuando el SWITCH está en ON
+    digitalWrite(LED1, HIGH);
+    
+    // Control de temperatura
+    controlTemperatura();
+  }
+}
+
+float leerTemperatura() {
+  // Calcular el voltaje y la temperatura en grados Celsius
+  float voltaje = analogRead(SENSOR_TEMP) * (5.0 / 1023.0);
+  float tempC = (voltaje - 0.5) * 100.0;
+  return tempC;
+}
+
+void controlTemperatura() {
+  // Activar RELEs en función de la temperatura y el setPoint
+  if (temperatura <= setPoint) {
+    digitalWrite(RELE_1, HIGH);
+    delay(800); // Espera 1 segundo
+    digitalWrite(RELE_2, HIGH);
+  } else if (temperatura > setPoint && temperatura <= setPoint + 1) {
+    digitalWrite(RELE_1, HIGH);
+    digitalWrite(RELE_2, LOW);
+  } else if (temperatura > setPoint + 1) {
+    digitalWrite(RELE_1, LOW);
+    digitalWrite(RELE_2, LOW);
+  }
+}
+
