@@ -1,0 +1,13 @@
+void setup() {
+  // Inicializa a comunicação serial com uma taxa de 9600 bps
+  Serial.begin(9600);
+  
+  // Imprime a mensagem uma vez na inicialização
+  Serial.println("Olá Mundo!");
+}
+
+void loop() {
+  // Seu código principal aqui
+  // Caso queira imprimir continuamente, coloque Serial.println() aqui
+  delay(1000); // Aguarda 1 segundo
+}
